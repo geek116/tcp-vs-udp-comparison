@@ -51,6 +51,7 @@ def cmd_send(a):
         txtlog.client_error(a, "cannot read file %s (%s)" % (a.file, e.strerror))
         sys.exit(1)
     digest = netlab.sha(data)
+    txtlog.client_begin(a)
     print("[client] file %s: %d bytes, SHA-256 %s" % (a.file, len(data), digest))
     try:
         if a.proto == "tcp":
@@ -82,6 +83,7 @@ def cmd_proxy(a):
             time.sleep(1)
             if a.proto == "udp":
                 print("[proxy] forwarded %d, dropped %d" % (p.forwarded, p.dropped), flush=True)
+                txtlog.proxy_stats(p.port, p.forwarded, p.dropped)
     except KeyboardInterrupt:
         txtlog.proxy_stop(a, p.port, p)
         p.close()

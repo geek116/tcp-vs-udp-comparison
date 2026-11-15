@@ -89,19 +89,59 @@ def _block(c, v):
         ("Server SHA-256", v["sha"]),
         ("Chunks at server", "%d of %d" % (v["received"], v["total"])),
         ("Time", "%.3f s" % c["seconds"]),
-        ("Retransmissions", c["retrans"]),
+        ("Retransmissions", ("%d (packets the client sent again)" % c["retrans"]) if c["proto"] != "tcp"
+         else "not measurable (TCP resends inside the operating system)"),
+        ("Bytes sent", "%d (file is %d, extra %d)" % (c["bytes_sent"], c["size"], c["bytes_sent"] - c["size"])),
+        ("Dropped by proxy", ("%s (this run, approx.)" % c["dropped"]) if c["dropped"] != "-" else "n/a"),
         ("What it proves", PROVES[(verdict, c["proto"])]),
     ])
 
 
+def _proxy_file(port):
+    return os.path.join("results", ".proxy_%s.json" % port)
+
+
+def proxy_stats(port, forwarded, dropped):
+    """Called by the proxy about once a second."""
+    os.makedirs("results", exist_ok=True)
+    with open(_proxy_file(port), "w", encoding="utf-8") as f:
+        json.dump({"forwarded": forwarded, "dropped": dropped}, f)
+
+
+def _read_proxy(port):
+    try:
+        with open(_proxy_file(port), encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+_baseline = None
+
+
+def client_begin(a):
+    """Called by the client before sending: remember the proxy's drop count."""
+    global _baseline
+    _baseline = _read_proxy(a.port)
+
+
 def client_ok(a, digest, size, st):
+    # Do the slow part BEFORE reading the shared notes, so we never overwrite
+    # an entry the server wrote while we were waiting.
+    px_now = None
+    if a.proto in ("udp", "rudp") and _read_proxy(a.port) is not None:
+        time.sleep(1.2)                      # proxy refreshes its counters once a second
+        px_now = _read_proxy(a.port)
+    dropped = "-"
+    if px_now is not None:
+        dropped = px_now["dropped"] - (_baseline["dropped"] if _baseline else 0)
     s = _load()
     _flush_stale(s)
     px = s["proxy"].get(str(a.port))
     network = ("through proxy: %s" % px) if px else "direct, no proxy (clean)"
     s["client"].append({"t": time.time(), "proto": a.proto, "status": "OK", "cmd": _cmd(), "file": a.file,
                         "size": size, "sha": digest, "seconds": st["elapsed"], "retrans": st["retransmits"],
-                        "network": network})
+                        "network": network, "bytes_sent": st["bytes_sent"], "dropped": dropped})
     p = _pair(s, a.proto)
     if p:
         _block(*p)
