@@ -18,6 +18,7 @@ import sys
 import time
 
 from final import netlab
+from final import txtlog
 from tests.impairment import TcpDelayProxy, UdpProxy
 
 
@@ -37,13 +38,20 @@ def cmd_server(a):
                 r = server.results[seen]
                 seen += 1
                 print("[server] transfer finished: %d/%d chunks, SHA-256 %s" % (r["received"], r["total"], r["hash"]), flush=True)
+                txtlog.server_done(a, server.port, r)
     except KeyboardInterrupt:
         server.close()
 
 
 def cmd_send(a):
-    data = open(a.file, "rb").read()
-    print("[client] file %s: %d bytes, SHA-256 %s" % (a.file, len(data), netlab.sha(data)))
+    try:
+        data = open(a.file, "rb").read()
+    except OSError as e:
+        print("[client] TRANSFER FAILED: cannot read file %s (%s)" % (a.file, e.strerror))
+        txtlog.client_error(a, "cannot read file %s (%s)" % (a.file, e.strerror))
+        sys.exit(1)
+    digest = netlab.sha(data)
+    print("[client] file %s: %d bytes, SHA-256 %s" % (a.file, len(data), digest))
     try:
         if a.proto == "tcp":
             st = netlab.tcp_send_file(a.host, a.port, data)
@@ -53,10 +61,12 @@ def cmd_send(a):
             st = netlab.rudp_send(a.host, a.port, data, window=a.window, rto=a.rto, max_time=a.timeout)
     except (OSError, TimeoutError) as e:      # communication errors are reported, not crashes
         print("[client] TRANSFER FAILED: %r" % (e,))
+        txtlog.client_error(a, repr(e), len(data), digest)
         sys.exit(1)
     print("[client] done in %.3f s, %d bytes sent, %d retransmissions" % (st["elapsed"], st["bytes_sent"], st["retransmits"]))
     if a.proto == "udp":
         print("[client] plain UDP gives no delivery confirmation: check the server's SHA-256 yourself.")
+    txtlog.client_ok(a, digest, len(data), st)
 
 
 def cmd_proxy(a):
@@ -64,6 +74,7 @@ def cmd_proxy(a):
         p = UdpProxy((a.host, a.to), loss=a.loss / 100, delay=a.delay_ms / 1000, listen_port=a.listen)
     else:
         p = TcpDelayProxy((a.host, a.to), delay=a.delay_ms / 1000, listen_port=a.listen)
+    txtlog.proxy_start(a, p.port)
     print("[proxy] %s %d%% loss, %d ms delay: clients should connect to port %d, forwarding to %d" %
           (a.proto.upper(), a.loss if a.proto == "udp" else 0, a.delay_ms, p.port, a.to), flush=True)
     try:
@@ -72,6 +83,7 @@ def cmd_proxy(a):
             if a.proto == "udp":
                 print("[proxy] forwarded %d, dropped %d" % (p.forwarded, p.dropped), flush=True)
     except KeyboardInterrupt:
+        txtlog.proxy_stop(a, p.port, p)
         p.close()
 
 
