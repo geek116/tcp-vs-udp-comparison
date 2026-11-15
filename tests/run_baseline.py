@@ -51,11 +51,15 @@ def run_once(proto, loss, in_path, expected_hash, size):
         server.wait(timeout=TIMEOUT)
     except subprocess.TimeoutExpired:
         server.kill()
+        server.wait()
         status = "hang"
     seconds = time.perf_counter() - t0
     got = open(out_path, "rb").read() if os.path.exists(out_path) else b""
     if os.path.exists(out_path):
-        os.remove(out_path)
+        try:
+            os.remove(out_path)
+        except OSError:
+            pass
     ok = (netlab.sha(got) == expected_hash)
     row = {"variant": f"baseline_{proto}", "loss": loss, "ok": int(ok), "status": status,
            "file_size": size, "bytes_received": len(got), "seconds": round(seconds, 4), "unintended_loss": None}
