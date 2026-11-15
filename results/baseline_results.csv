@@ -1,0 +1,13 @@
+variant,loss,ok,status,file_size,bytes_received,seconds,unintended_loss,rep
+baseline_tcp,0,1,finished,262144,262144,0.0329,,1
+baseline_tcp,0,1,finished,262144,262144,0.0308,,2
+baseline_tcp,0,1,finished,262144,262144,0.0322,,3
+baseline_udp,0,1,finished,262144,262144,0.0302,0,1
+baseline_udp,0,1,finished,262144,262144,0.0307,0,2
+baseline_udp,0,1,finished,262144,262144,0.0317,0,3
+baseline_udp,5,0,finished,262144,252928,0.0374,0,1
+baseline_udp,5,0,finished,262144,253952,0.032,0,2
+baseline_udp,5,0,finished,262144,254976,0.035,0,3
+baseline_udp,10,0,finished,262144,231424,0.0336,0,1
+baseline_udp,10,0,finished,262144,232448,0.0327,0,2
+baseline_udp,10,0,finished,262144,226304,0.0305,0,3
