@@ -18,6 +18,7 @@ import sys
 import time
 
 from final import netlab
+from final import autodoc            # automatic documentation of every test
 from tests.impairment import TcpDelayProxy, UdpProxy
 
 
@@ -37,6 +38,7 @@ def cmd_server(a):
                 r = server.results[seen]
                 seen += 1
                 print("[server] transfer finished: %d/%d chunks, SHA-256 %s" % (r["received"], r["total"], r["hash"]), flush=True)
+                autodoc.server_transfer_done(a, server.port, r)   # automatic documentation
     except KeyboardInterrupt:
         server.close()
 
@@ -46,8 +48,10 @@ def cmd_send(a):
         data = open(a.file, "rb").read()
     except OSError as e:
         print("[client] TRANSFER FAILED: cannot read file %s (%s)" % (a.file, e.strerror))
+        autodoc.client_send_error(a, "cannot read file %s (%s)" % (a.file, e.strerror))  # automatic documentation
         sys.exit(1)
     digest = netlab.sha(data)
+    autodoc.client_send_start(a, digest, len(data))             # automatic documentation
     print("[client] file %s: %d bytes, SHA-256 %s" % (a.file, len(data), digest))
     try:
         if a.proto == "tcp":
@@ -58,10 +62,12 @@ def cmd_send(a):
             st = netlab.rudp_send(a.host, a.port, data, window=a.window, rto=a.rto, max_time=a.timeout)
     except (OSError, TimeoutError) as e:      # communication errors are reported, not crashes
         print("[client] TRANSFER FAILED: %r" % (e,))
+        autodoc.client_send_error(a, repr(e), len(data), digest)  # automatic documentation
         sys.exit(1)
     print("[client] done in %.3f s, %d bytes sent, %d retransmissions" % (st["elapsed"], st["bytes_sent"], st["retransmits"]))
     if a.proto == "udp":
         print("[client] plain UDP gives no delivery confirmation: check the server's SHA-256 yourself.")
+    autodoc.client_send_done(st)                                 # automatic documentation
 
 
 def cmd_proxy(a):
@@ -69,6 +75,7 @@ def cmd_proxy(a):
         p = UdpProxy((a.host, a.to), loss=a.loss / 100, delay=a.delay_ms / 1000, listen_port=a.listen)
     else:
         p = TcpDelayProxy((a.host, a.to), delay=a.delay_ms / 1000, listen_port=a.listen)
+    autodoc.proxy_start(a, p.port)                               # automatic documentation
     print("[proxy] %s %d%% loss, %d ms delay: clients should connect to port %d, forwarding to %d" %
           (a.proto.upper(), a.loss if a.proto == "udp" else 0, a.delay_ms, p.port, a.to), flush=True)
     try:
@@ -76,7 +83,9 @@ def cmd_proxy(a):
             time.sleep(1)
             if a.proto == "udp":
                 print("[proxy] forwarded %d, dropped %d" % (p.forwarded, p.dropped), flush=True)
+                autodoc.proxy_stats(p.port, p.forwarded, p.dropped)   # automatic documentation
     except KeyboardInterrupt:
+        autodoc.proxy_stop(a, p.port, p)                        # automatic documentation
         p.close()
 
 
