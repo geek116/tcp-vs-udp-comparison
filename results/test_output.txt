@@ -1,0 +1,160 @@
+
+==============================================================================
+2026-11-14 23:06:22   PROXY STARTED  (UDP)
+==============================================================================
+Command:  python app.py proxy --proto udp --listen 6500 --to 6000 --loss 10 --delay-ms 20
+Settings: loss 10%, delay 20 ms each way
+Ports:    clients send to 6500, proxy forwards to 6000
+
+==============================================================================
+2026-11-14 23:06:27   FAIL  UDP transfer
+==============================================================================
+Verdict:          FAIL
+Protocol:         UDP
+Network:          through proxy: loss 10%, delay 20 ms each way
+File:             myfile.bin (300000 bytes)
+Client command:   python app.py send --proto udp --port 6500 --file myfile.bin
+Server command:   python app.py server --proto udp --port 6000
+Client SHA-256:   aa44a6020c1e84989c33513619be44b98e911123e7a0e49bcf5c0f3e6b126529
+Server SHA-256:   3fde2256716ab70ffed175fb3e9bf4c521fdadb80e48d76b7399c5d31660aed8
+Chunks at server: 268 of 300
+Time:             0.002 s
+Retransmissions:  0
+What it proves:   Plain UDP lost data and the client could not tell: it said done, the server is short.
+
+==============================================================================
+2026-11-14 23:06:40   PROXY STOPPED  (UDP)
+==============================================================================
+Traffic: forwarded 268, dropped 32
+
+==============================================================================
+2026-11-14 23:08:27   PROXY STARTED  (UDP)
+==============================================================================
+Command:  python app.py proxy --proto udp --listen 6500 --to 6000 --loss 10 --delay-ms 20
+Settings: loss 10%, delay 20 ms each way
+Ports:    clients send to 6500, proxy forwards to 6000
+
+==============================================================================
+2026-11-14 23:08:33   PASS  RUDP transfer
+==============================================================================
+Verdict:          PASS
+Protocol:         RUDP
+Network:          through proxy: loss 10%, delay 20 ms each way
+File:             myfile.bin (300000 bytes)
+Client command:   python app.py send --proto rudp --port 6500 --file myfile.bin
+Server command:   python app.py server --proto rudp --port 6000
+Client SHA-256:   aa44a6020c1e84989c33513619be44b98e911123e7a0e49bcf5c0f3e6b126529
+Server SHA-256:   aa44a6020c1e84989c33513619be44b98e911123e7a0e49bcf5c0f3e6b126529
+Chunks at server: 300 of 300
+Time:             2.378 s
+Retransmissions:  365
+What it proves:   Reliable UDP delivered an identical file, even if packets were dropped on the way.
+
+==============================================================================
+2026-11-14 23:08:43   PROXY STOPPED  (UDP)
+==============================================================================
+Traffic: forwarded 1134, dropped 124
+
+==============================================================================
+2026-11-14 23:10:00   PROXY STARTED  (UDP)
+==============================================================================
+Command:  python app.py proxy --proto udp --listen 6500 --to 6000 --loss 10 --delay-ms 20
+Settings: loss 10%, delay 20 ms each way
+Ports:    clients send to 6500, proxy forwards to 6000
+
+==============================================================================
+2026-11-14 23:10:02   ERROR  RUDP transfer
+==============================================================================
+Verdict:        ERROR
+Protocol:       RUDP
+File:           nothere.bin
+Client command: python app.py send --proto rudp --port 6500 --file nothere.bin
+Error:          cannot read file nothere.bin (No such file or directory)
+What it proves: The client reported the failure instead of crashing or claiming success.
+
+==============================================================================
+2026-11-14 23:19:16   PROXY STOPPED  (UDP)
+==============================================================================
+Traffic: forwarded 0, dropped 0
+
+==============================================================================
+2026-11-14 23:19:41   PROXY STARTED  (UDP)
+==============================================================================
+Command:  python app.py proxy --proto udp --listen 6500 --to 6000 --loss 10 --delay-ms 20
+Settings: loss 10%, delay 20 ms each way
+Ports:    clients send to 6500, proxy forwards to 6000
+
+==============================================================================
+2026-11-14 23:19:47   PASS  RUDP transfer
+==============================================================================
+Verdict:          PASS
+Protocol:         RUDP
+Network:          through proxy: loss 10%, delay 20 ms each way
+File:             myfile.bin (300000 bytes)
+Client command:   python app.py send --proto rudp --port 6500 --file myfile.bin
+Server command:   python app.py server --proto rudp --port 6000
+Client SHA-256:   aa44a6020c1e84989c33513619be44b98e911123e7a0e49bcf5c0f3e6b126529
+Server SHA-256:   aa44a6020c1e84989c33513619be44b98e911123e7a0e49bcf5c0f3e6b126529
+Chunks at server: 300 of 300
+Time:             2.431 s
+Retransmissions:  370 (packets the client sent again)
+Bytes sent:       676030 (file is 300000, extra 376030)
+Dropped by proxy: 131 (this run, approx.)
+What it proves:   Reliable UDP delivered an identical file, even if packets were dropped on the way.
+
+==============================================================================
+2026-11-14 23:19:57   PROXY STOPPED  (UDP)
+==============================================================================
+Traffic: forwarded 1141, dropped 131
+
+==============================================================================
+2026-11-14 23:20:24   PROXY STARTED  (UDP)
+==============================================================================
+Command:  python app.py proxy --proto udp --listen 6500 --to 6000 --loss 10 --delay-ms 20
+Settings: loss 10%, delay 20 ms each way
+Ports:    clients send to 6500, proxy forwards to 6000
+
+==============================================================================
+2026-11-14 23:20:27   FAIL  UDP transfer
+==============================================================================
+Verdict:          FAIL
+Protocol:         UDP
+Network:          through proxy: loss 10%, delay 20 ms each way
+File:             myfile.bin (300000 bytes)
+Client command:   python app.py send --proto udp --port 6500 --file myfile.bin
+Server command:   python app.py server --proto udp --port 6000
+Client SHA-256:   aa44a6020c1e84989c33513619be44b98e911123e7a0e49bcf5c0f3e6b126529
+Server SHA-256:   431dcc366098a468ef0edeb43d511a5997ce882b0884321ac4bcaf98d575214e
+Chunks at server: 269 of 300
+Time:             0.001 s
+Retransmissions:  0 (packets the client sent again)
+Bytes sent:       302700 (file is 300000, extra 2700)
+Dropped by proxy: 31 (this run, approx.)
+What it proves:   Plain UDP lost data and the client could not tell: it said done, the server is short.
+
+==============================================================================
+2026-11-14 23:20:38   PROXY STOPPED  (UDP)
+==============================================================================
+Traffic: forwarded 269, dropped 31
+
+==============================================================================
+2026-11-14 23:20:58   PROXY STARTED  (UDP)
+==============================================================================
+Command:  python app.py proxy --proto udp --listen 6500 --to 6000 --loss 10 --delay-ms 20
+Settings: loss 10%, delay 20 ms each way
+Ports:    clients send to 6500, proxy forwards to 6000
+
+==============================================================================
+2026-11-14 23:21:01   ERROR  RUDP transfer
+==============================================================================
+Verdict:        ERROR
+Protocol:       RUDP
+File:           nothere.bin
+Client command: python app.py send --proto rudp --port 6500 --file nothere.bin
+Error:          cannot read file nothere.bin (No such file or directory)
+What it proves: The client reported the failure instead of crashing or claiming success.
+
+==============================================================================
+2026-11-14 23:26:17   PROXY STOPPED  (UDP)
+==============================================================================
+Traffic: forwarded 0, dropped 0
