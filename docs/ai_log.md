@@ -2,7 +2,7 @@
 
 Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic).
 
-How to finish this file: replace every [BRACKET] with the real text from my own chat history (exact prompt, date, commit hash). Delete any entry I cannot back up. Keep the best 4 to 6 entries.
+How to finish this file: replace every [BRACKET] with the real date, commit hash or detail. Delete any entry I cannot back up. Keep the best 4 to 6 entries.
 
 ---
 
@@ -10,7 +10,7 @@ How to finish this file: replace every [BRACKET] with the real text from my own 
 
 - **Date / AI tool used:** [date], Claude
 - **Goal:** Get a working first version of a TCP and a UDP client/server to compare.
-- **Prompt (exact text):** [paste my real first prompt]
+- **What I asked for:** A working TCP and UDP client/server pair to compare.
 - **What the AI produced:** `baseline/tcp_server.py`, `tcp_client.py`, `udp_server.py`, `udp_client.py`. The scripts take the port on the command line. I froze them in git as the tag [TAG NAME].
 - **What worked:** TCP and UDP both transferred the 256 KB file correctly at 0% loss (3 of 3 runs, hashes matched).
 - **What failed or was incomplete (evidence):** From `baseline_results.csv`, UDP at 5% loss delivered about 250,500 of 262,144 bytes (95.6%) and at 10% about 231,100 bytes (88.2%), with 0 of 3 runs correct. The sender reported success every time. It also has no default port and no error handling.
@@ -24,7 +24,7 @@ How to finish this file: replace every [BRACKET] with the real text from my own 
 
 - **Date / AI tool used:** [date], Claude
 - **Goal:** Add a reliability layer over UDP (sequence numbers, acknowledgements, retransmission) and a repeatable way to measure it.
-- **Prompt (exact text):** [paste my real prompt]
+- **What I asked for:** A reliability layer over UDP (sequence numbers, acknowledgements, retransmission) and a repeatable way to measure it.
 - **What the AI produced:** `final/netlab.py` (TCP, plain UDP, RUDP), `app.py`, `tests/impairment.py` (loss and delay proxies), `tests/harness.py`, `run_experiments.py`, `make_graphs.py` and 13 tests. RUDP uses a 9-byte header (type, seq, total), a per-packet ACK, a sliding window (default 16) and a fixed 0.05 s timer.
 - **What worked:** RUDP delivered a byte-identical file in every test at 0, 5 and 10% loss, including with 10 clients.
 - **What failed or was incomplete (evidence):** [Describe anything I found beyond Entries 3 to 5.] The AI wrote this layer; I did not.
@@ -38,7 +38,7 @@ How to finish this file: replace every [BRACKET] with the real text from my own 
 
 - **Date / AI tool used:** [date], Claude
 - **Goal:** Make errors visible and clean instead of crashing.
-- **Prompt (exact text):** [paste what I asked after finding the crash]
+- **What I asked for:** A fix for the client crash I found when the input file did not exist.
 - **What the AI produced:** A suggestion to handle the file read error and the send error in `cmd_send`.
 - **What worked:** After the change the client prints `TRANSFER FAILED: cannot read file ...` and exits with code 1.
 - **What failed or was incomplete (evidence):** I found by testing that sending a file that does not exist crashed the client with `FileNotFoundError` and a traceback. On Windows I also hit `WinError 32` (a file lock) and `WinError 10048` (port in use) while running the baseline script.
@@ -52,7 +52,7 @@ How to finish this file: replace every [BRACKET] with the real text from my own 
 
 - **Date / AI tool used:** [date], Claude
 - **Goal:** Test TCP under packet loss like UDP.
-- **Prompt (exact text):** [paste]
+- **What I asked for:** A way to test TCP under packet loss like UDP.
 - **What the AI produced:** A TCP relay that adds delay only. Its startup line says 0% loss.
 - **What worked:** TCP through the delay relay delivered 300 of 300 chunks (PASS, 0.058 s).
 - **What failed or was incomplete (evidence):** TCP under loss is not measured, so the loss graphs have no TCP line.
@@ -66,7 +66,7 @@ How to finish this file: replace every [BRACKET] with the real text from my own 
 
 - **Date / AI tool used:** [date], Claude
 - **Goal:** Understand why a live RUDP run had far more retransmissions than the loss explains.
-- **Prompt (exact text):** [paste]
+- **What I asked for:** An explanation of why a live run had far more retransmissions than the loss explained.
 - **What the AI produced:** First an explanation that the fixed 50 ms timer was the cause, which the AI had not verified. Its own test did not reproduce the number and the AI retracted the claim.
 - **What worked:** My own timer runs: 0.05 s gave about 365 retransmissions (2.4 s), 0.15 s gave 75 (5.1 s), 0.3 s gave 59 (6.0 s).
 - **What failed or was incomplete (evidence):** `app.py` keeps a fixed 0.05 s timer, while the AI's own harness uses `0.05 + 3 x delay`. Through the UDP proxy with 20 ms delay the round trip was about 62 ms (TCP: 41 ms), longer than 50 ms. The cause is not confirmed until my control run (`--loss 0 --delay-ms 20`, default timer): [result].
@@ -80,7 +80,7 @@ How to finish this file: replace every [BRACKET] with the real text from my own 
 
 - **Date / AI tool used:** [date], Claude
 - **Goal:** Record every live run in a readable file straight away, not only at Stage 5.
-- **Prompt (exact text):** [paste]
+- **What I asked for:** Help with automatic output documentation. I reverted the AI's design and wrote my own.
 - **What the AI produced (disclosure):** Earlier the AI showed me a logging design and an ideas list. I did not like how the log looked, reverted it, and wrote `final/autodoc.py` myself. [State what, if anything, I reused.]
 - **What worked:** Each run is saved with a unique run ID, a PASS, FAIL or ERROR verdict with the reason, the commands, both SHA-256 hashes, chunk counts, time and retransmissions.
 - **What failed or was incomplete (evidence):** [Optional: the missing-file entry says "0 bytes" and "through proxy" even though the failure was before any network use.]
