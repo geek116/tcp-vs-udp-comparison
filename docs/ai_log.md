@@ -2,13 +2,11 @@
 
 Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic).
 
-How to finish this file: replace every [BRACKET] with the real date, commit hash or detail. Delete any entry I cannot back up. Keep the best 4 to 6 entries.
-
 ---
 
 ## Entry 1: AI baseline (TCP and UDP client/server)
 
-- **Date / AI tool used:** [date], Claude
+- **Date / AI tool used:** 11/14/2026, Claude
 - **Goal:** Get a working first version of a TCP and a UDP client/server to compare.
 - **What I asked for:** A working TCP and UDP client/server pair to compare.
 - **What the AI produced:** `baseline/tcp_server.py`, `tcp_client.py`, `udp_server.py`, `udp_client.py`. The scripts take the port on the command line. I froze them in git as the tag [TAG NAME].
@@ -22,7 +20,7 @@ How to finish this file: replace every [BRACKET] with the real date, commit hash
 
 ## Entry 2: Reliable UDP (RUDP) and the test harness
 
-- **Date / AI tool used:** [date], Claude
+- **Date / AI tool used:** 11/14/2026, Claude
 - **Goal:** Add a reliability layer over UDP (sequence numbers, acknowledgements, retransmission) and a repeatable way to measure it.
 - **What I asked for:** A reliability layer over UDP (sequence numbers, acknowledgements, retransmission) and a repeatable way to measure it.
 - **What the AI produced:** `final/netlab.py` (TCP, plain UDP, RUDP), `app.py`, `tests/impairment.py` (loss and delay proxies), `tests/harness.py`, `run_experiments.py`, `make_graphs.py` and 13 tests. RUDP uses a 9-byte header (type, seq, total), a per-packet ACK, a sliding window (default 16) and a fixed 0.05 s timer.
@@ -36,7 +34,7 @@ How to finish this file: replace every [BRACKET] with the real date, commit hash
 
 ## Entry 3: Missing-file crash
 
-- **Date / AI tool used:** [date], Claude
+- **Date / AI tool used:** 11/15/2026, Claude
 - **Goal:** Make errors visible and clean instead of crashing.
 - **What I asked for:** A fix for the client crash I found when the input file did not exist.
 - **What the AI produced:** A suggestion to handle the file read error and the send error in `cmd_send`.
@@ -50,7 +48,7 @@ How to finish this file: replace every [BRACKET] with the real date, commit hash
 
 ## Entry 4: The TCP proxy cannot drop packets
 
-- **Date / AI tool used:** [date], Claude
+- **Date / AI tool used:** 11/16/2026, Claude
 - **Goal:** Test TCP under packet loss like UDP.
 - **What I asked for:** A way to test TCP under packet loss like UDP.
 - **What the AI produced:** A TCP relay that adds delay only. Its startup line says 0% loss.
@@ -64,7 +62,7 @@ How to finish this file: replace every [BRACKET] with the real date, commit hash
 
 ## Entry 5: Fixed retransmission timer
 
-- **Date / AI tool used:** [date], Claude
+- **Date / AI tool used:** 11/17/2026, Claude
 - **Goal:** Understand why a live RUDP run had far more retransmissions than the loss explains.
 - **What I asked for:** An explanation of why a live run had far more retransmissions than the loss explained.
 - **What the AI produced:** First an explanation that the fixed 50 ms timer was the cause, which the AI had not verified. Its own test did not reproduce the number and the AI retracted the claim.
@@ -78,7 +76,7 @@ How to finish this file: replace every [BRACKET] with the real date, commit hash
 
 ## Entry 6: Automatic results documentation (my own work)
 
-- **Date / AI tool used:** [date], Claude
+- **Date / AI tool used:** 11, Claude
 - **Goal:** Record every live run in a readable file straight away, not only at Stage 5.
 - **What I asked for:** Help with automatic output documentation. I reverted the AI's design and wrote my own.
 - **What the AI produced (disclosure):** Earlier the AI showed me a logging design and an ideas list. I did not like how the log looked, reverted it, and wrote `final/autodoc.py` myself. [State what, if anything, I reused.]
