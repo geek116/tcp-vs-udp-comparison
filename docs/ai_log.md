@@ -41,7 +41,7 @@ Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic
 - **What worked:** After the change the client prints `TRANSFER FAILED: cannot read file ...` and exits with code 1.
 - **What failed or was incomplete (evidence):** I found by testing that sending a file that does not exist crashed the client with `FileNotFoundError` and a traceback. On Windows I also hit `WinError 32` (a file lock) and `WinError 10048` (port in use) while running the baseline script.
 - **Networking knowledge needed:** TCP reports a missing server at once (connection refused, error 10061). Plain UDP cannot detect that nobody is listening and reports success. RUDP retries and then times out.
-- **How I changed it (file, commit):** `app.py` ([commit hash]); the Windows fixes in `tests/run_baseline.py` (bf4a233).
+- **How I changed it (file, commit):** `app.py` I found this error by testing: sending a file that did not exist crashed the client with a FileNotFoundError traceback. I updated app.py so that the client catches the file-read error in cmd_send and prints a single clear message, TRANSFER FAILED: cannot read file ..., then exits with code 1. I then re-tested it, and the case is now recorded as an ERROR entry in my results file.
 - **Result after the change (measurement):** The missing-file case and the refused connection are recorded as ERROR entries in my results file (Stage 4).
 
 ---
