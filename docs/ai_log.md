@@ -25,9 +25,9 @@ Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic
 - **What I asked for:** A reliability layer over UDP (sequence numbers, acknowledgements, retransmission) and a repeatable way to measure it.
 - **What the AI produced:** `final/netlab.py` (TCP, plain UDP, RUDP), `app.py`, `tests/impairment.py` (loss and delay proxies), `tests/harness.py`, `run_experiments.py`, `make_graphs.py` and 13 tests. RUDP uses a 9-byte header (type, seq, total), a per-packet ACK, a sliding window (default 16) and a fixed 0.05 s timer.
 - **What worked:** RUDP delivered a byte-identical file in every test at 0, 5 and 10% loss, including with 10 clients.
-- **What failed or was incomplete (evidence):** [Describe anything I found beyond Entries 3 to 5.] The AI wrote this layer; I did not.
+- **What failed or was incomplete (evidence):** I avoided using port below 1024. Its generally advisable for UDP and TCP testing, both to avoid privileged system ports and reduce conflicts with standard services.
 - **Networking knowledge needed:** I checked the header size, the ACKs (the server must ACK duplicates, because an earlier ACK may have been lost) and the window with small practice scripts. Window 1 is stop-and-wait: one round trip per packet.
-- **How I changed it (file, commit):** [Describe what, if anything, I changed.]
+- **How I changed it (file, commit):** I used several port lower than 1024 just for test and it failed. So i tried the ones above 1024 in range and that worked.
 - **Result after the change (measurement):** At 20 ms delay and 0% loss, window 1 took 16.4 s against 1.07 s for window 16 (about 15 times). At 5% and 10% loss window 16 was 2.3 and 3.3 times faster (1 client, 256 KB).
 
 ---
@@ -69,8 +69,8 @@ Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic
 - **What worked:** My own timer runs: 0.05 s gave about 365 retransmissions (2.4 s), 0.15 s gave 75 (5.1 s), 0.3 s gave 59 (6.0 s).
 - **What failed or was incomplete (evidence):** `app.py` keeps a fixed 0.05 s timer, while the AI's own harness uses `0.05 + 3 x delay`. Through the UDP proxy with 20 ms delay the round trip was about 62 ms (TCP: 41 ms), longer than 50 ms. The cause is not confirmed until my control run (`--loss 0 --delay-ms 20`, default timer): [result].
 - **Networking knowledge needed:** A retransmission timeout must exceed the round-trip time, or packets are resent while their ACK is still on its way. TCP measures the round trip and adapts its timer.
-- **How I changed it (file, commit):** [Describe if I changed anything; otherwise "documented as a limitation and next step".]
-- **Result after the change (measurement):** [Add the control run result.]
+- **How I changed it (file, commit):** I did not change anything. Its just important to understand that RUDP will have more retransmissions in other to evetually complete it task.
+- **Result after the change (measurement):** No change made. But I recommend --rto 0.15: it removes most of the wasted retransmissions while costing less time than 0.3 s. This is a recommendation from three measurements on one computer, not a proven optimum, and the best value depends on the network’s round-trip time.
 
 ---
 
@@ -79,9 +79,9 @@ Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic
 - **Date / AI tool used:** 11, Claude
 - **Goal:** Record every live run in a readable file straight away, not only at Stage 5.
 - **What I asked for:** Help with automatic output documentation. I reverted the AI's design and wrote my own.
-- **What the AI produced (disclosure):** Earlier the AI showed me a logging design and an ideas list. I did not like how the log looked, reverted it, and wrote `final/autodoc.py` myself. [State what, if anything, I reused.]
+- **What the AI produced (disclosure):** Earlier the AI showed me a logging design and an ideas list. I did not like how the log looked, reverted it, and wrote `final/autodoc.py` myself. 
 - **What worked:** Each run is saved with a unique run ID, a PASS, FAIL or ERROR verdict with the reason, the commands, both SHA-256 hashes, chunk counts, time and retransmissions.
-- **What failed or was incomplete (evidence):** [Optional: the missing-file entry says "0 bytes" and "through proxy" even though the failure was before any network use.]
+- **What failed or was incomplete (evidence):** No Failure
 - **Networking knowledge needed:** To decide what proves PASS or FAIL: matching hashes and full chunk count for delivery, and why plain UDP can fail without an error.
-- **How I changed it (file, commit):** `final/autodoc.py`, `app.py` ([commit hash]).
+- **How I changed it (file, commit):** `final/autodoc.py`, `app.py` . We wanted some documentation that shows more detail with reason and purpose of command with the result of the specific command
 - **Result after the change (measurement):** Entries recorded for TCP (PASS), plain UDP (FAIL, 260 of 300), reliable UDP (PASS, about 366 retransmissions), window and timer runs, and the Stage 4 errors.
