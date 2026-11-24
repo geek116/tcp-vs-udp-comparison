@@ -9,11 +9,11 @@ Project: TCP vs UDP Comparison System (solo project). AI tool: Claude (Anthropic
 - **Date / AI tool used:** 11/14/2026, Claude
 - **Goal:** Get a working first version of a TCP and a UDP client/server to compare.
 - **What I asked for:** A working TCP and UDP client/server pair to compare.
-- **What the AI produced:** `baseline/tcp_server.py`, `tcp_client.py`, `udp_server.py`, `udp_client.py`. The scripts take the port on the command line. I froze them in git as the tag [TAG NAME].
+- **What the AI produced:** `baseline/tcp_server.py`, `tcp_client.py`, `udp_server.py`, `udp_client.py`. The scripts take the port on the command line. I froze them in git as the tag v0-ai-baseline
 - **What worked:** TCP and UDP both transferred the 256 KB file correctly at 0% loss (3 of 3 runs, hashes matched).
 - **What failed or was incomplete (evidence):** From `baseline_results.csv`, UDP at 5% loss delivered about 250,500 of 262,144 bytes (95.6%) and at 10% about 231,100 bytes (88.2%), with 0 of 3 runs correct. The sender reported success every time. It also has no default port and no error handling.
 - **Networking knowledge needed to notice / fix it:** UDP gives no delivery guarantee and no signal to the sender when a datagram is lost, so a transfer can look successful and still be corrupt. I needed to compare SHA-256 hashes instead of trusting "done".
-- **How I changed it (file, commit):** I did not change the baseline. I froze it and measured it as the "before" ([commit hash]).
+- **How I changed it (file, commit):** I did not change the baseline. I froze it and measured it as the "before" 
 - **Result after the change (measurement):** Baseline measured with `python -m tests.run_baseline`; results in `baseline_results.csv`.
 
 ---
