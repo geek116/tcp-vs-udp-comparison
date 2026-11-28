@@ -74,16 +74,18 @@ Useful client options: `--window 1` (stop-and-wait; default 16), `--rto 0.15` (r
 
 **Ports.** Any free port from 1024 to 65535 works; avoid ports below 1024 (reserved for standard services). The numbers must line up: the server `--port` is the proxy `--to`, and the client `--port` is the proxy `--listen` (or the server port when there is no proxy). For example: server 6000, proxy `--listen 6500 --to 6000`, client `--port 6500`.
 
-**More scenarios.** Change only the proxy line (Terminal 2) and, for reliable UDP, the client options. Each test uses the same three terminals (server, proxy, client):
+**More scenarios.** Each test uses the same three terminals (server, proxy, client). Terminal 1 (the server) is the same line every time except for the protocol, so it is shown once in the first column. Change only the proxy line (Terminal 2) and, for reliable UDP, the client options. Replace `<proto>` with `tcp`, `udp` or `rudp`, and use the same protocol in the client line.
 
-| Scenario | Terminal 2 (proxy) | Terminal 3 (client) | Expected |
-|---|---|---|---|
-| Direct, no proxy | not used | `--port 9000` | tcp, udp, rudp: PASS |
-| Delay only | `proxy --proto tcp` (or `udp`) `--listen 9001 --to 9000 --delay-ms 20` | `--port 9001` | PASS, slower |
-| Loss 5% or 10% (udp, rudp) | `proxy --proto udp --listen 9001 --to 9000 --loss 5` (or `10`) | `--port 9001` | udp FAIL; rudp PASS |
-| Loss 10% + 20 ms delay | `proxy --proto udp --listen 9001 --to 9000 --loss 10 --delay-ms 20` | `--port 9001` | udp FAIL; rudp PASS, slower |
-| Reliable UDP window | same proxy | add `--window 1` or `--window 16` | window 1 about ten times slower |
-| Reliable UDP timer | same proxy | add `--rto 0.05`, `0.15` or `0.3` | lower timer: more retransmissions |
+| Scenario | Terminal 1 (server) | Terminal 2 (proxy) | Terminal 3 (client) | Expected |
+|---|---|---|---|---|
+| Direct, no proxy | `server --proto <proto> --port 9000` | not used | `send --proto <proto> --port 9000 --file myfile.bin` | tcp, udp, rudp: PASS |
+| Delay only | same | `proxy --proto tcp` (or `udp`) `--listen 9001 --to 9000 --delay-ms 20` | `--port 9001` | PASS, slower |
+| Loss 5% or 10% (udp, rudp) | same | `proxy --proto udp --listen 9001 --to 9000 --loss 5` (or `10`) | `--port 9001` | udp FAIL; rudp PASS |
+| Loss 10% + 20 ms delay | same | `proxy --proto udp --listen 9001 --to 9000 --loss 10 --delay-ms 20` | `--port 9001` | udp FAIL; rudp PASS, slower |
+| Reliable UDP window | `--proto rudp` | same proxy | add `--window 1` or `--window 16` | window 1 about ten times slower |
+| Reliable UDP timer | `--proto rudp` | same proxy | add `--rto 0.05`, `0.15` or `0.3` | lower timer: more retransmissions |
+
+All commands start with `python app.py`. The proxy protocol must match the traffic: `tcp` for tcp, `udp` for udp and rudp. The server `--port` must equal the proxy `--to`.
 
 The TCP proxy adds delay only, so loss tests are for udp and rudp. The full guide, with the exact Terminal 1, 2 and 3 commands for every test, is in `docs/How_To_Run_TCP_vs_UDP_Project.docx`.
 
@@ -109,6 +111,34 @@ python -m tests.make_graphs
 ```
 
 Run `make_graphs` last; it fails if the experiments have not run. Do not use `--quick`: it writes short 64 KB runs into the same CSV files and they get averaged with the real 256 KB runs.
+
+## Test scenarios at a glance
+
+Every test uses three terminals: **Terminal 1** the server, **Terminal 2** the proxy (the network condition) and **Terminal 3** the client. The exact commands for each test are in `docs/How_To_Run_TCP_vs_UDP_Project.docx`. "udp" means plain UDP (no reliability); "rudp" means reliable UDP.
+
+| # | Scenario | tcp | udp (plain) | rudp (reliable) |
+|---|---|---|---|---|
+| 1 | Direct, no proxy | PASS | PASS | PASS |
+| 2 | Delay only (20 ms) | PASS (slower) | PASS | PASS (slower) |
+| 3 | Loss 5% | not possible* | FAIL | PASS |
+| 4 | Loss 10% | not possible* | FAIL | PASS |
+| 5 | Loss 10% + delay 20 ms | not possible* | FAIL | PASS (slower) |
+| 6 | RUDP window 1 against 16 | n/a | n/a | both PASS; window 1 about ten times slower |
+| 7 | RUDP timer 0.05 / 0.15 / 0.3 s | n/a | n/a | lower timer: more retransmissions, faster |
+| 8 | Control: delay, no loss, default timer | n/a | n/a | shows whether the timer alone causes retransmissions |
+| E | Errors: missing file, no server | ERROR | ERROR (no server: no error shown) | ERROR |
+
+\* The TCP proxy adds delay only; it cannot drop TCP packets.
+
+## Results at a glance
+
+From the experiment runs (256 KB file, three repetitions, one computer over loopback). The full tables and graphs are in `results/` and the report.
+
+- **Reliability under loss:** plain UDP never delivered a correct file at 5% or 10% loss (about 93% and 90% of the data arrived), and the AI baseline UDP behaved the same way (0 of 3 runs correct). Reliable UDP delivered a byte-identical file in every run, including 10 concurrent clients.
+- **Cost of reliability:** 0.78 to 3.9 s for one client instead of milliseconds, with about 11% overhead at 5% loss and 23 to 25% at 10% loss.
+- **Window:** window 16 was 2.3 to 3.3 times faster than stop-and-wait under loss, and about 15 times faster with 20 ms delay (1.07 s against 16.4 s).
+- **Timer:** the fixed 0.05 s timer gave about 365 retransmissions in a live run, against 75 at 0.15 s and 59 at 0.3 s.
+- **TCP:** correct in every test, but only tested without packet loss.
 
 ## Where the output is saved
 
