@@ -72,6 +72,21 @@ Repeat with `--proto udp` (hashes differ, FAIL) or `--proto tcp` (the TCP proxy 
 
 Useful client options: `--window 1` (stop-and-wait; default 16), `--rto 0.15` (retransmission timer in seconds; default 0.05), `--timeout 60`.
 
+**Ports.** Any free port from 1024 to 65535 works; avoid ports below 1024 (reserved for standard services). The numbers must line up: the server `--port` is the proxy `--to`, and the client `--port` is the proxy `--listen` (or the server port when there is no proxy). For example: server 6000, proxy `--listen 6500 --to 6000`, client `--port 6500`.
+
+**More scenarios.** Change only the proxy line (Terminal 2) and, for reliable UDP, the client options. Each test uses the same three terminals (server, proxy, client):
+
+| Scenario | Terminal 2 (proxy) | Terminal 3 (client) | Expected |
+|---|---|---|---|
+| Direct, no proxy | not used | `--port 9000` | tcp, udp, rudp: PASS |
+| Delay only | `proxy --proto tcp` (or `udp`) `--listen 9001 --to 9000 --delay-ms 20` | `--port 9001` | PASS, slower |
+| Loss 5% or 10% (udp, rudp) | `proxy --proto udp --listen 9001 --to 9000 --loss 5` (or `10`) | `--port 9001` | udp FAIL; rudp PASS |
+| Loss 10% + 20 ms delay | `proxy --proto udp --listen 9001 --to 9000 --loss 10 --delay-ms 20` | `--port 9001` | udp FAIL; rudp PASS, slower |
+| Reliable UDP window | same proxy | add `--window 1` or `--window 16` | window 1 about ten times slower |
+| Reliable UDP timer | same proxy | add `--rto 0.05`, `0.15` or `0.3` | lower timer: more retransmissions |
+
+The TCP proxy adds delay only, so loss tests are for udp and rudp. The full guide, with the exact Terminal 1, 2 and 3 commands for every test, is in `docs/How_To_Run_TCP_vs_UDP_Project.docx`.
+
 ### 4. Error cases (no server running)
 
 ```
@@ -124,6 +139,6 @@ Start the server with `--host 0.0.0.0` and give the client the server's IPv4 add
 ## Known limits
 
 - All experiments run on loopback, not a real network.
-- TCP under packet loss is not tested (the TCP proxy adds delay only; real loss would need `tc netem` on Linux).
+- TCP under packet loss is not tested (the TCP proxy adds delay only; real loss would need an operating-system-level loss tool).
 - RUDP uses a fixed retransmission timer; real TCP adapts its timer. Through the UDP proxy with 20 ms delay on Windows, the measured round trip was about 62 ms, longer than the 0.05 s default timer.
 - Results use three repetitions per setting, on one computer.
